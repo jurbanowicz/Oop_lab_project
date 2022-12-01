@@ -26,5 +26,5 @@ public interface IWorldMap {
      * @param animal animal to be moved
      * @return vector of the animals final position
      */
-    public Vector2d canMoveTo(Vector2d newPos, Animal animal);
+    public Vector2d MoveTo(Vector2d newPos, Animal animal);
 }

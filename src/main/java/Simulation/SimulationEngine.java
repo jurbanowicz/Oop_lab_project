@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class SimulationEngine {
     IWorldMap map;
-    int startingEnergy;
+    float startingEnergy;
     int genotypeLength;
     ArrayList<Animal> animals;
 
@@ -23,12 +23,12 @@ public class SimulationEngine {
      * @param startingEnergy amount of energy that animals start the simulation with
      * @param genotypeLength length of genotype created for the animals
      */
-    public SimulationEngine(IWorldMap map, int noAnimals, int startingEnergy, int genotypeLength) {
+    public SimulationEngine(IWorldMap map, int noAnimals, float startingEnergy, int genotypeLength) {
         this.map = map;
         this.simAge = 0;
         this.startingEnergy = startingEnergy;
         this.genotypeLength = genotypeLength;
-        this.animals = generateAnimals(noAnimals, map.getSize());
+        this.animals = generateAnimals(noAnimals, map);
 
         for (Animal animal: animals) {
             map.place(animal);
@@ -38,27 +38,43 @@ public class SimulationEngine {
     /**
      * Creates given number of animals with random parameters
      * @param n number of animals to be created
-     * @param upperRight map boundary
+     * @param map game map
      * @return List with all the created animals
      */
-    private ArrayList<Animal> generateAnimals(int n, Vector2d upperRight) {
+    private ArrayList<Animal> generateAnimals(int n, IWorldMap map) {
+        Vector2d upperRight = map.getSize();
         ArrayList<Animal> animals = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            int x = ThreadLocalRandom.current().nextInt(0, upperRight.x + 1);
-            int y = ThreadLocalRandom.current().nextInt(0, upperRight.y + 1);
-            animals.add(new Animal(new Vector2d(x, y), genotypeLength, startingEnergy));
+            int x = ThreadLocalRandom.current().nextInt(0, upperRight.x);
+            int y = ThreadLocalRandom.current().nextInt(0, upperRight.y);
+            animals.add(new Animal(new Vector2d(x, y), map, genotypeLength, startingEnergy));
         }
         return animals;
     }
 
     public void run() {
-        /**
-         *  Move each of the animals on the map according to their current gene
-         */
-        for (Animal animal: animals) {
-            animal.move();
-        }
 
+        while (simAge < 20) {
+            moveAnimals();
+
+
+            increaseAge();
+        }
+    }
+    /**
+     *  Move each of the animals on the map according to their current gene
+     */
+    public void moveAnimals() {
+        for (Animal animal : animals) {
+            animal.move();
+            System.out.println(animal.getPosition().toString() + animal.getDirection().toString());
+        }
+    }
+    public void increaseAge() {
+        for (Animal animal : animals) {
+            animal.addAge();
+        }
         simAge++;
+        System.out.println(simAge);
     }
 }
