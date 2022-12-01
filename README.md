@@ -1,2 +1,2 @@
-# Oop_lab_project
+# oop_lab_project
 Project for OOP Lab
