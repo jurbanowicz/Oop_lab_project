@@ -1,11 +1,13 @@
 package Project;
 
 import Simulation.SimulationEngine;
+import Simulation.SimulationParameters;
 
 public class World {
     public static void main(String[] args) {
         IWorldMap map = new EarthMap(10, 10);
-        SimulationEngine engine = new SimulationEngine(map, 1, 10, 1);
+        SimulationParameters params = new SimulationParameters(5, 10, 5, 5, 1, 2, 5);
+        SimulationEngine engine = new SimulationEngine(map, params);
         engine.run();
     }
 }

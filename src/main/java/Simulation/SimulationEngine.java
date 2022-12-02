@@ -1,8 +1,6 @@
 package Simulation;
 
-import Project.Animal;
-import Project.IWorldMap;
-import Project.Vector2d;
+import Project.*;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -14,25 +12,29 @@ public class SimulationEngine {
     ArrayList<Animal> animals;
 
     int simAge;
+    int grassGrowingEachDay;
+    GrassSpawner grassSpawner;
+    AnimalBreeder animalBreeder;
 
 
     /**
      *
      * @param map simulation map for animals to be placed on
-     * @param noAnimals number of animals in game
-     * @param startingEnergy amount of energy that animals start the simulation with
-     * @param genotypeLength length of genotype created for the animals
-     */
-    public SimulationEngine(IWorldMap map, int noAnimals, float startingEnergy, int genotypeLength) {
+    */
+    public SimulationEngine(IWorldMap map, SimulationParameters parameters) {
         this.map = map;
         this.simAge = 0;
-        this.startingEnergy = startingEnergy;
-        this.genotypeLength = genotypeLength;
-        this.animals = generateAnimals(noAnimals, map);
+        this.startingEnergy = parameters.startingEnergy;
+        this.genotypeLength = parameters.genotypeLength;
+        this.animals = generateAnimals(parameters.noAnimals, map);
+        this.grassGrowingEachDay = parameters.grassGrowingEachDay;
+        this.grassSpawner = new GrassSpawner(parameters.grassEnergy);
+        this.animalBreeder = new AnimalBreeder(map, parameters.breedingCost, parameters.genotypeLength, new GenotypeGenerator());
 
         for (Animal animal: animals) {
             map.place(animal);
         }
+        growGrass(parameters.startGrassAmount);
     }
 
     /**
@@ -53,13 +55,33 @@ public class SimulationEngine {
     }
 
     public void run() {
+//        System.out.println(map);
+//        printCurrentAnimals();
+//        System.out.println("------");
 
-        while (simAge < 20) {
+        while (simAge < 30) {
+
+            if (animals.size() == 0) {
+                break;
+            }
+            System.out.println(map);
+            printCurrentAnimals();
+
+            removeDeadAnimals();
             moveAnimals();
-
-
+            consumeGrass();
+            breedAnimals();
             increaseAge();
+            growGrass(grassGrowingEachDay);
         }
+    }
+    public void removeDeadAnimals() {
+        animals.removeIf(Animal::isAnimalDead);
+//        for (Animal animal: animals) {
+//            if (animal.isAnimalDead()) {
+//                map.removeDeadAnimal(animal);
+//            }
+//        }
     }
     /**
      *  Move each of the animals on the map according to their current gene
@@ -67,8 +89,12 @@ public class SimulationEngine {
     public void moveAnimals() {
         for (Animal animal : animals) {
             animal.move();
-            System.out.println(animal.getPosition().toString() + animal.getDirection().toString());
         }
+    }
+    public void consumeGrass() {
+        map.animalsConsumption();
+    }
+    public void breedAnimals() {
     }
     public void increaseAge() {
         for (Animal animal : animals) {
@@ -76,5 +102,15 @@ public class SimulationEngine {
         }
         simAge++;
         System.out.println(simAge);
+    }
+    public void growGrass(int amount) {
+        for (int i = 0; i < amount; i++) {
+            grassSpawner.growGrass(map);
+        }
+    }
+    public void printCurrentAnimals() {
+        for (Animal animal : animals) {
+            System.out.println("Animals current position: " + animal.getPosition().toString() + animal.getDirection().toString() + " Energy: "+ animal.getEnergy());
+        }
     }
 }
