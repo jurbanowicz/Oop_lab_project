@@ -86,22 +86,25 @@ public class Animal implements IMapElement{
     public void move() {
         int currMove = genotype[genIdx];
         Vector2d oldPos = this.position;
-        Vector2d newPos = this.position;
-        MapDirection newDirection = direction;
-        switch (currMove) {
-            case 0 -> newPos = oldPos.add(direction.toUnitVector());
-            case 4 -> newPos = oldPos.subtract(direction.toUnitVector());
-            default -> newDirection = direction.rotate(currMove);
-        }
-        // default case animal was rotated, so now we need to move it
-        if (newPos.equals(oldPos)) {
-            direction = newDirection;
-            newPos = newPos.add(newDirection.toUnitVector());
-
-        }
-        // newPos is already assigned in switch case 0 and 4
+        MapDirection newDirection = direction.rotate(currMove);
+        Vector2d newPos = oldPos.add(newDirection.toUnitVector());
         position = map.MoveTo(newPos);
         positionChanged(oldPos, newPos);
+
+//        switch (currMove) {
+//            case 0 -> newPos = oldPos.add(direction.toUnitVector());
+//            case 4 -> newPos = oldPos.subtract(direction.toUnitVector());
+//            default -> newDirection = direction.rotate(currMove);
+//        }
+//         default case animal was rotated, so now we need to move it
+//        if (newPos.equals(oldPos)) {
+//            direction = newDirection;
+//            newPos = newPos.add(newDirection.toUnitVector());
+//
+//        }
+//        // newPos is already assigned in switch case 0 and 4
+//        position = map.MoveTo(newPos);
+//        positionChanged(oldPos, newPos);
 
         subtractEnergy(1);
         increaseGenIdx();

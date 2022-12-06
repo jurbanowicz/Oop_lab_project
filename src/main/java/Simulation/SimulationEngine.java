@@ -29,7 +29,8 @@ public class SimulationEngine {
         this.animals = generateAnimals(parameters.noAnimals, map);
         this.grassGrowingEachDay = parameters.grassGrowingEachDay;
         this.grassSpawner = new GrassSpawner(parameters.grassEnergy);
-        this.animalBreeder = new AnimalBreeder(map, parameters.breedingCost, parameters.genotypeLength, new GenotypeGenerator());
+        this.animalBreeder = new AnimalBreeder(map, parameters.breedingCost, parameters.breedingMinEnergy, parameters.genotypeLength, new GenotypeGenerator());
+        this.map.setAnimalBreeder(this.animalBreeder);
 
         for (Animal animal: animals) {
             map.place(animal);
@@ -73,6 +74,11 @@ public class SimulationEngine {
             breedAnimals();
             increaseAge();
             growGrass(grassGrowingEachDay);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
         }
     }
     public void removeDeadAnimals() {
@@ -95,6 +101,8 @@ public class SimulationEngine {
         map.animalsConsumption();
     }
     public void breedAnimals() {
+        ArrayList<Animal> newAnimals = map.breedPossible();
+        this.animals.addAll(newAnimals);
     }
     public void increaseAge() {
         for (Animal animal : animals) {
@@ -109,8 +117,9 @@ public class SimulationEngine {
         }
     }
     public void printCurrentAnimals() {
-        for (Animal animal : animals) {
-            System.out.println("Animals current position: " + animal.getPosition().toString() + animal.getDirection().toString() + " Energy: "+ animal.getEnergy());
-        }
+        System.out.println("Number of animals on map: " + animals.size());
+//        for (Animal animal : animals) {
+//            System.out.println("Animals current position: " + animal.getPosition().toString() + animal.getDirection().toString() + " Energy: "+ animal.getEnergy());
+//        }
     }
 }

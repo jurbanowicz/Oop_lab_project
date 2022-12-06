@@ -1,5 +1,7 @@
 package Project;
 
+import java.util.ArrayList;
+
 public interface IWorldMap {
     /**
      * get maps size
@@ -32,5 +34,7 @@ public interface IWorldMap {
     void placeGrass(Grass grass);
     void animalsConsumption();
     void removeDeadAnimal(Animal animal);
+    void setAnimalBreeder(AnimalBreeder animalBreeder);
+    ArrayList<Animal> breedPossible();
 }
 

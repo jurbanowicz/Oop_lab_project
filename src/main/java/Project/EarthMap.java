@@ -2,6 +2,7 @@ package Project;
 
 import Visualization.MapVisualizer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
@@ -13,6 +14,8 @@ public class EarthMap implements IWorldMap, IPositionChangeObserver {
 
     private HashMap<Vector2d, PriorityQueue<Animal>> animalList;
     private HashMap<Vector2d, Grass> grassList;
+    private AnimalBreeder animalBreeder;
+
 
     public EarthMap(int height, int width) {
         this.height = height;
@@ -24,6 +27,10 @@ public class EarthMap implements IWorldMap, IPositionChangeObserver {
     @Override
     public Vector2d getSize() {
         return new Vector2d(width, height);
+    }
+    @Override
+    public void setAnimalBreeder(AnimalBreeder animalBreeder) {
+        this.animalBreeder = animalBreeder;
     }
 
     @Override
@@ -124,5 +131,25 @@ public class EarthMap implements IWorldMap, IPositionChangeObserver {
             // remove given animal from priority Que
             animalList.get(animal.getPosition()).remove(animal);
         }
+    }
+    @Override
+    public ArrayList<Animal> breedPossible() {
+        ArrayList<Animal> newAnimals = new ArrayList<>();
+        for (PriorityQueue<Animal> animalQue : animalList.values()) {
+            if (animalQue.size() > 1) {
+                Animal[] possibleBreeders = animalQue.toArray(Animal[]::new);
+                for (int i = 0; i < possibleBreeders.length - 1; i++) {
+                    if (animalBreeder.isBreedingPossible(possibleBreeders[i], possibleBreeders[i + 1])) {
+                        Animal newAnimal = animalBreeder.breedNewAnimal(possibleBreeders[i], possibleBreeders[i + 1]);
+                        newAnimals.add(newAnimal);
+                        place(newAnimal);
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+        }
+        return newAnimals;
     }
 }
