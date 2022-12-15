@@ -15,6 +15,7 @@ public class EarthMap implements IWorldMap, IPositionChangeObserver {
     private HashMap<Vector2d, PriorityQueue<Animal>> animalList;
     private HashMap<Vector2d, Grass> grassList;
     private AnimalBreeder animalBreeder;
+    private IMapObserver observer;
 
 
     public EarthMap(int height, int width) {
@@ -151,5 +152,14 @@ public class EarthMap implements IWorldMap, IPositionChangeObserver {
             }
         }
         return newAnimals;
+    }
+    @Override
+    public void addMapObserver(IMapObserver observer) {
+        this.observer = observer;
+    }
+
+    @Override
+    public void notifyObserver() {
+        observer.updateMap();
     }
 }

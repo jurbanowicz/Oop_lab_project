@@ -1,11 +1,12 @@
 package Simulation;
 
 import Project.*;
+import javafx.application.Platform;
 
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class SimulationEngine {
+public class SimulationEngine implements Runnable {
     IWorldMap map;
     float startingEnergy;
     int genotypeLength;
@@ -15,6 +16,7 @@ public class SimulationEngine {
     int grassGrowingEachDay;
     GrassSpawner grassSpawner;
     AnimalBreeder animalBreeder;
+    boolean isPaused;
 
 
     /**
@@ -31,6 +33,7 @@ public class SimulationEngine {
         this.grassSpawner = new GrassSpawner(parameters.grassEnergy);
         this.animalBreeder = new AnimalBreeder(map, parameters.breedingCost, parameters.breedingMinEnergy, parameters.genotypeLength, new GenotypeGenerator());
         this.map.setAnimalBreeder(this.animalBreeder);
+        this.isPaused = false;
 
         for (Animal animal: animals) {
             map.place(animal);
@@ -54,28 +57,39 @@ public class SimulationEngine {
         }
         return animals;
     }
+    public void pauseSim(boolean value) {
+        isPaused = value;
+//        System.out.println(value);
+    }
+    public boolean isSimPaused() {
+        return isPaused;
+    }
 
     public void run() {
 //        System.out.println(map);
 //        printCurrentAnimals();
 //        System.out.println("------");
 
-        while (simAge < 30) {
+        while (true) {
+//            System.out.println("Check");
+            if (!(isSimPaused())) {
+                if (animals.size() == 0) {
+                    break;
+                }
+//            System.out.println(map);
+                map.notifyObserver();
+//                printCurrentAnimals();
 
-            if (animals.size() == 0) {
-                break;
+                removeDeadAnimals();
+                moveAnimals();
+                consumeGrass();
+                breedAnimals();
+                increaseAge();
+                growGrass(grassGrowingEachDay);
             }
-            System.out.println(map);
-            printCurrentAnimals();
 
-            removeDeadAnimals();
-            moveAnimals();
-            consumeGrass();
-            breedAnimals();
-            increaseAge();
-            growGrass(grassGrowingEachDay);
             try {
-                Thread.sleep(1000);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
@@ -109,7 +123,7 @@ public class SimulationEngine {
             animal.addAge();
         }
         simAge++;
-        System.out.println(simAge);
+//        System.out.println(simAge);
     }
     public void growGrass(int amount) {
         for (int i = 0; i < amount; i++) {
@@ -121,5 +135,11 @@ public class SimulationEngine {
 //        for (Animal animal : animals) {
 //            System.out.println("Animals current position: " + animal.getPosition().toString() + animal.getDirection().toString() + " Energy: "+ animal.getEnergy());
 //        }
+    }
+    public int getAnimalsOnMap() {
+        return animals.size();
+    }
+    public int getSimAge() {
+        return this.simAge;
     }
 }

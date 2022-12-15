@@ -10,6 +10,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="oop-project_1.main" />
+    <orderEntry type="library" name="Gradle: org.openjfx:javafx-fxml:mac-aarch64:19" level="project" />
+    <orderEntry type="library" name="Gradle: org.openjfx:javafx-controls:19" level="project" />
     <orderEntry type="library" name="Gradle: org.openjfx:javafx-controls:mac-aarch64:19" level="project" />
     <orderEntry type="library" name="Gradle: org.openjfx:javafx-graphics:19" level="project" />
     <orderEntry type="library" name="Gradle: org.openjfx:javafx-graphics:mac-aarch64:19" level="project" />

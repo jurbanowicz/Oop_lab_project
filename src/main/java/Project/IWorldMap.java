@@ -36,5 +36,7 @@ public interface IWorldMap {
     void removeDeadAnimal(Animal animal);
     void setAnimalBreeder(AnimalBreeder animalBreeder);
     ArrayList<Animal> breedPossible();
+    void addMapObserver(IMapObserver observer);
+    void notifyObserver();
 }
 
