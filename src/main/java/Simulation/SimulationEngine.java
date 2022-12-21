@@ -84,23 +84,25 @@ public class SimulationEngine implements Runnable {
 //            System.out.println(map);
 
 //                printCurrentAnimals();
-
-                removeDeadAnimals();
-                moveAnimals();
-                consumeGrass();
-                breedAnimals();
-                increaseAge();
-                decreaseEnergy();
-                growGrass(grassGrowingEachDay);
+                runSimulationDay();
                 map.notifyObserver();
             }
 
             try {
-                Thread.sleep(25);
+                Thread.sleep(20);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
         }
+    }
+    private void runSimulationDay() {
+        removeDeadAnimals();
+        moveAnimals();
+        consumeGrass();
+        breedAnimals();
+        increaseAge();
+        decreaseEnergy();
+        growGrass(grassGrowingEachDay);
     }
     public void removeDeadAnimals() {
         animals.removeIf(Animal::isAnimalDead);
@@ -135,6 +137,13 @@ public class SimulationEngine implements Runnable {
         for (int i = 0; i < amount; i++) {
             grassOnMap.add(grassSpawner.growGrass(map));
         }
+    }
+    public void skipAges(int amount) {
+        int targetAge = simAge + amount;
+        while (simAge < targetAge) {
+            runSimulationDay();
+        }
+        map.notifyObserver();
     }
     public void printCurrentAnimals() {
         System.out.println("Number of animals on map: " + animals.size());

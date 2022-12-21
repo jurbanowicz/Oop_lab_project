@@ -3,8 +3,10 @@ package Simulation;
 import Visualization.App;
 import javafx.application.Application;
 
+import static javafx.application.Application.launch;
+
 public class SimulationLauncher {
-    public static void main(String[] args) {
-        Application.launch(App.class, args);
+    public void startSimulation(SimulationParameters params) {
+
     }
 }
