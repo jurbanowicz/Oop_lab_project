@@ -2,14 +2,24 @@ package Project;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static java.lang.Math.abs;
+
 public class GenotypeGenerator {
+    private int mutationsNumber;
+    private int mutationVariant;
+    private int genotypeLength;
+
+    public GenotypeGenerator(int genotypeLength, int mutationsNumber, int mutationVariant) {
+        this.genotypeLength = genotypeLength;
+        this.mutationsNumber = mutationsNumber;
+        this.mutationVariant = mutationVariant;
+    }
 
     /** Creates a random genotype of given legth for an animal
-     *
-     * @param n length of the genotype
      * @return int array with animals genotype
      */
-    public int[] GenerateNew(int n) {
+    public int[] GenerateNew() {
+        int n = genotypeLength;
         int[] genotype = new int[n];
         for (int i = 0; i < n; i++) {
             genotype[i] = ThreadLocalRandom.current().nextInt(0, 8);
@@ -54,7 +64,45 @@ public class GenotypeGenerator {
                 }
             }
         }
-        return result;
+
+        return mutate(result);
+    }
+    private int[] mutate(int[] genotype) {
+        if (mutationsNumber == 0) {
+            return genotype;
+        }
+        if (mutationVariant == 0) {
+            genotype = randomMutation(genotype);
+        }
+        else {
+            genotype = slightCorrection(genotype);
+        }
+        return genotype;
+    }
+    private int[] randomMutation(int[] genotype) {
+        for (int i = 0; i < mutationsNumber; i++) {
+            int genIdx = ThreadLocalRandom.current().nextInt(0, genotypeLength);
+            genotype[genIdx] = ThreadLocalRandom.current().nextInt(0, 8);
+        }
+        return genotype;
+    }
+    private int[] slightCorrection(int[] genotype) {
+        for (int i = 0; i < mutationsNumber; i++) {
+            int genIdx = ThreadLocalRandom.current().nextInt(0, genotypeLength);
+            int change = ThreadLocalRandom.current().nextInt(0, 2);
+            if (change == 0) {
+                genotype[genIdx]--;
+                if (genotype[genIdx] < 0) {
+                    genotype[genIdx] = 7;
+                }
+            } else {
+                genotype[genIdx]++;
+                if (genotype[genIdx] > 7) {
+                    genotype[genIdx] = 0;
+                }
+            }
+        }
+        return genotype;
     }
 }
 

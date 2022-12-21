@@ -1,11 +1,11 @@
 package Project;
 
 public class AnimalBreeder {
-    IWorldMap map;
-    GenotypeGenerator genotypeGenerator;
-    int breedingCost;
-    int genotypeLength;
-    int breedingMinEnergy;
+    private IWorldMap map;
+    private GenotypeGenerator genotypeGenerator;
+    private int breedingCost;
+    private int genotypeLength;
+    private int breedingMinEnergy;
     public AnimalBreeder(IWorldMap map, int breedingCost, int breedingMinEnergy, int genotypeLength, GenotypeGenerator genotypeGenerator) {
         this.map = map;
         this.breedingCost = breedingCost;
@@ -22,6 +22,7 @@ public class AnimalBreeder {
         baby.setGenotype(genotypeGenerator.GenerateBaby(a1, a2));
         a1.subtractEnergy(breedingCost);
         a2.subtractEnergy(breedingCost);
+        baby.setMoveVariant(a1.getMoveVariant());
         return baby;
     }
 }

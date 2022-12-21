@@ -4,19 +4,22 @@ import Project.*;
 import javafx.application.Platform;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SimulationEngine implements Runnable {
-    IWorldMap map;
-    float startingEnergy;
-    int genotypeLength;
-    ArrayList<Animal> animals;
+    private IWorldMap map;
+    private float startingEnergy;
+    private int genotypeLength;
+    private ArrayList<Animal> animals;
+    private ArrayList<Grass> grassOnMap;
 
-    int simAge;
-    int grassGrowingEachDay;
-    GrassSpawner grassSpawner;
-    AnimalBreeder animalBreeder;
-    boolean isPaused;
+    private int simAge;
+    private int grassGrowingEachDay;
+    private GrassSpawner grassSpawner;
+    private AnimalBreeder animalBreeder;
+    private boolean isPaused;
+    private int dailyEnergyCost;
 
 
     /**
@@ -27,13 +30,15 @@ public class SimulationEngine implements Runnable {
         this.map = map;
         this.simAge = 0;
         this.startingEnergy = parameters.startingEnergy;
+        this.dailyEnergyCost = parameters.dailyEnergyCost;
         this.genotypeLength = parameters.genotypeLength;
         this.animals = generateAnimals(parameters.noAnimals, map);
         this.grassGrowingEachDay = parameters.grassGrowingEachDay;
         this.grassSpawner = new GrassSpawner(parameters.grassEnergy);
-        this.animalBreeder = new AnimalBreeder(map, parameters.breedingCost, parameters.breedingMinEnergy, parameters.genotypeLength, new GenotypeGenerator());
+        this.animalBreeder = new AnimalBreeder(map, parameters.breedingCost, parameters.breedingMinEnergy, parameters.genotypeLength, new GenotypeGenerator(this.genotypeLength, parameters.numberOfMutations, parameters.mutationVariant));
         this.map.setAnimalBreeder(this.animalBreeder);
         this.isPaused = false;
+        this.grassOnMap = new ArrayList<>();
 
         for (Animal animal: animals) {
             map.place(animal);
@@ -77,7 +82,7 @@ public class SimulationEngine implements Runnable {
                     break;
                 }
 //            System.out.println(map);
-                map.notifyObserver();
+
 //                printCurrentAnimals();
 
                 removeDeadAnimals();
@@ -85,11 +90,13 @@ public class SimulationEngine implements Runnable {
                 consumeGrass();
                 breedAnimals();
                 increaseAge();
+                decreaseEnergy();
                 growGrass(grassGrowingEachDay);
+                map.notifyObserver();
             }
 
             try {
-                Thread.sleep(100);
+                Thread.sleep(25);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
@@ -99,20 +106,19 @@ public class SimulationEngine implements Runnable {
         animals.removeIf(Animal::isAnimalDead);
 //        for (Animal animal: animals) {
 //            if (animal.isAnimalDead()) {
-//                map.removeDeadAnimal(animal);
+////                animal.setDeathDate(simAge);
+//                animals.remove(animal);
+//
 //            }
 //        }
     }
-    /**
-     *  Move each of the animals on the map according to their current gene
-     */
     public void moveAnimals() {
         for (Animal animal : animals) {
             animal.move();
         }
     }
     public void consumeGrass() {
-        map.animalsConsumption();
+        grassOnMap.removeAll(map.animalsConsumption());
     }
     public void breedAnimals() {
         ArrayList<Animal> newAnimals = map.breedPossible();
@@ -127,7 +133,7 @@ public class SimulationEngine implements Runnable {
     }
     public void growGrass(int amount) {
         for (int i = 0; i < amount; i++) {
-            grassSpawner.growGrass(map);
+            grassOnMap.add(grassSpawner.growGrass(map));
         }
     }
     public void printCurrentAnimals() {
@@ -139,7 +145,21 @@ public class SimulationEngine implements Runnable {
     public int getAnimalsOnMap() {
         return animals.size();
     }
+    public int getGrassOnMap() {
+        return map.countGrass();
+    }
     public int getSimAge() {
         return this.simAge;
+    }
+    private void decreaseEnergy() {
+        for (Animal animal: animals) {
+            animal.subtractEnergy(dailyEnergyCost);
+        }
+    }
+    public ArrayList<Animal> getAnimals() {
+        return this.animals;
+    }
+    public ArrayList<Grass> getGrass() {
+        return this.grassOnMap;
     }
 }

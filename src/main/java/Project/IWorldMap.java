@@ -1,6 +1,7 @@
 package Project;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 public interface IWorldMap {
     /**
@@ -32,11 +33,12 @@ public interface IWorldMap {
     boolean isOccupied(Vector2d position);
 
     void placeGrass(Grass grass);
-    void animalsConsumption();
+    ArrayList<Grass> animalsConsumption();
     void removeDeadAnimal(Animal animal);
     void setAnimalBreeder(AnimalBreeder animalBreeder);
     ArrayList<Animal> breedPossible();
     void addMapObserver(IMapObserver observer);
     void notifyObserver();
+    int countGrass();
 }
 
