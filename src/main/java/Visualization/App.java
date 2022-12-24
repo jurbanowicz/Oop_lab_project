@@ -13,9 +13,13 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class App extends Application {
     private TextField NumberOfAnimals;
@@ -35,6 +39,7 @@ public class App extends Application {
     private ComboBox<String> grassVariant;
     private ComboBox<String> mutationsVariant;
     private ComboBox<String> behaviourVariant;
+    private ComboBox<String> simulationPresets;
 
 
     @Override
@@ -99,7 +104,8 @@ public class App extends Application {
 
         Button startButton = new Button("Start");
 
-        Text gameVariantText = new Text("Select game variants: ");
+        Text gameVariantText = new Text("Select game variants");
+        gameVariantText.setFont(Font.font(20));
 
         mapVariant = new ComboBox<String>();
         mapVariant.getItems().add("Earth Map");
@@ -174,6 +180,7 @@ public class App extends Application {
         );
         leftBox.setAlignment(Pos.CENTER);
 
+
         VBox rightBox = new VBox(
                 gameVariantText, mapVarBox, grassVarBox, mutationsVarBox, behaviourVarBox, fileSection
         );
@@ -208,63 +215,78 @@ public class App extends Application {
         int grassE = Integer.parseInt(grassEnergy.getText());
         int breedingEnergyCost = Integer.parseInt(breedingCost.getText());
         int breedingRequiredEnergy = Integer.parseInt(breedingEnergy.getText());
-        int mutationsOccuring = Integer.parseInt(mutationsNumber.getText());
+        int mutationsOccurring = Integer.parseInt(mutationsNumber.getText());
 
-        if (mutationsOccuring > genotypeLen) {
-            throw new NumberFormatException("Number of mutations occuring is larger than animal's genotype");
+        if (mutationsOccurring > genotypeLen) {
+            throw new NumberFormatException("Number of mutations occurring is larger than animal's genotype");
         }
         if (breedingEnergyCost > breedingRequiredEnergy) {
-            throw new NumberFormatException("Breeding energy cost is higher tahn emergy required to breed");
+            throw new NumberFormatException("Breeding energy cost is higher than energy required to breed");
         }
 
 
-        String mutationsVar = mutationsVariant.getValue();
-        int mutationVal;
-        if (mutationsVar == null) {
-            throw new NumberFormatException();
-        }
-        if (Objects.equals(mutationsVar, "Fully Randomized")) {
-            mutationVal = 0;
-        } else {
-            mutationVal = 1;
-        }
 
         int mapHeight = Integer.parseInt(mapHeightValue.getText());
         int mapWidth = Integer.parseInt(mapWidthValue.getText());
 
-        String mapVar = mapVariant.getValue();
-        if (mapVar == null) {
-            throw new NumberFormatException();
-        }
-        int mapVal;
-        if (Objects.equals(mapVar, "Earth Map")) {
-            mapVal = 0;
-        } else {
-            mapVal = 1;
-        }
-
-        String moveVar = behaviourVariant.getValue();
-        if (moveVar == null) {
-            throw new NumberFormatException();
-        }
-        int moveVal;
-        if (Objects.equals(moveVar, "Full predestination")) {
-            moveVal = 0;
-        } else {
-            moveVal = 1;
-        }
-
         int sleepTime = Integer.parseInt(simSleepTime.getText());
+
+//        String mapVar = mapVariant.getValue();
+//        if (mapVar == null) {
+//            throw new NumberFormatException();
+//        }
+//        int mapVal;
+//        if (Objects.equals(mapVar, "Earth Map")) {
+//            mapVal = 0;
+//        } else {
+//            mapVal = 1;
+//        }
+//        String grassVar = grassVariant.getValue();
+//        int grassVal;
+//        if (grassVar == null) {
+//            throw new NumberFormatException();
+//        }
+//        if (Objects.equals(grassVar, "Arboreous Equator")) {
+//            grassVal = 0;
+//        } else {
+//            grassVal = 1;
+//        }
+//
+//        String mutationsVar = mutationsVariant.getValue();
+//        int mutationVal;
+//        if (mutationsVar == null) {
+//            throw new NumberFormatException();
+//        }
+//        if (Objects.equals(mutationsVar, "Fully Randomized")) {
+//            mutationVal = 0;
+//        } else {
+//            mutationVal = 1;
+//        }
+//
+//        String moveVar = behaviourVariant.getValue();
+//        if (moveVar == null) {
+//            throw new NumberFormatException();
+//        }
+//        int moveVal;
+//        if (Objects.equals(moveVar, "Full predestination")) {
+//            moveVal = 0;
+//        } else {
+//            moveVal = 1;
+//        }
+        int mapVal = saveComboBoxParameter(mapVariant);
+        int grassVal = saveComboBoxParameter(grassVariant);
+        int mutationVal = saveComboBoxParameter(mutationsVariant);
+        int moveVal = saveComboBoxParameter(behaviourVariant);
 
         return new SimulationParameters(animalsNo, animalsEnergy, dailyEnergy,
                 genotypeLen, startingGrass, growingGrass, grassE, breedingEnergyCost, breedingRequiredEnergy,
-                mutationsOccuring, mutationVal, mapHeight, mapWidth, mapVal, moveVal, sleepTime
+                mutationsOccurring, mutationVal, mapHeight, mapWidth, mapVal, moveVal, sleepTime, grassVal
                 );
     }
     private void loadParametersFromFile(String fileName) {
         try {
-            String filePath = "/Users/jacekurbanowicz/Desktop/WIET/Obiektowe/oop_project_1/src/main/resources/SimSpecs/";
-            BufferedReader reader = new BufferedReader(new FileReader(filePath + fileName + ".txt"));
+            String filePath = "./src/main/resources/Presets/";
+            BufferedReader reader = new BufferedReader(new FileReader(filePath + fileName));
             NumberOfAnimals.setText(reader.readLine());
             animalStartingEnergy.setText(reader.readLine());
             dailyEnergyCost.setText(reader.readLine());
@@ -279,29 +301,85 @@ public class App extends Application {
             mapWidthValue.setText(reader.readLine());
             simSleepTime.setText(reader.readLine());
 
+            String mapVar = reader.readLine();
+            loadComboBoxParameters(mapVar, mapVariant);
+            String grassVar = reader.readLine();
+            loadComboBoxParameters(grassVar, grassVariant);
+            String mutationVar = reader.readLine();
+            loadComboBoxParameters(mutationVar, mutationsVariant);
+            String behaviourVar = reader.readLine();
+            loadComboBoxParameters(behaviourVar, behaviourVariant);
 
 
+            reader.close();
         } catch (IOException e) {
             System.out.print(e.getMessage());
         }
     }
+    private int saveComboBoxParameter(ComboBox<String> comboBox) throws NumberFormatException {
+        String variant = behaviourVariant.getValue();
+        if (variant == null) {
+            throw new NumberFormatException();
+        }
+        int value;
+        if (comboBox.getSelectionModel().isSelected(0)) {
+            value = 0;
+        } else {
+            value = 1;
+        }
+        return value;
+    }
+    private void loadComboBoxParameters(String value, ComboBox<String> comboBox) {
+        if (value.equals("0")) {
+            comboBox.getSelectionModel().select(0);
+        } else {
+            comboBox.getSelectionModel().select(1);
+        }
+    }
     private VBox createSaveLoad() {
+        Text saveLoadText = new Text("Save and Load presets");
+        saveLoadText.setFont(Font.font(20));
         Button loadButton = new Button("Load Settings from a File");
         Button saveButton = new Button("Save Settings to a File");
-        Text filePathText = new Text("Input the file name");
+        Text filePathText = new Text("Input the file name and click Save to save current preset: ");
+        Text loadFileText = new Text("Select a preset from the list and click load to load preset: ");
         TextField filePath = new TextField();
+        createPresetsBox();
 
         loadButton.setOnAction(event -> {
-            loadParametersFromFile(filePath.getText());
+            loadParametersFromFile(simulationPresets.getValue());
         });
         saveButton.setOnAction(event -> {
             ParametersWriter writer = new ParametersWriter();
             writer.write(readParameters(), filePath.getText());
+            updatePresetBox();
         });
-        VBox root = new VBox(filePathText, filePath, loadButton, saveButton);
+
+        VBox root = new VBox(saveLoadText, filePathText, filePath, saveButton, loadFileText, simulationPresets, loadButton);
+        root.setSpacing(10);
         root.setAlignment(Pos.CENTER);
 
         return root;
+    }
+    private void createPresetsBox() {
+        simulationPresets = new ComboBox<>();
+        Set<String> files = readFilesFromDirectory("./src/main/resources/Presets");
+        for (String file: files) {
+            simulationPresets.getItems().add(file);
+        }
+    }
+    private void updatePresetBox() {
+        Set<String> files = readFilesFromDirectory("./src/main/resources/Presets");
+        simulationPresets.getItems().clear();
+        for (String file: files) {
+            simulationPresets.getItems().add(file);
+        }
+    }
+    private Set<String> readFilesFromDirectory(String filePath) {
+        return Stream.of(Objects.requireNonNull(new File(filePath).listFiles()))
+                .filter(file -> !file.isDirectory())
+                .map(File::getName)
+                .collect(Collectors.toSet());
     }
     private void ErrorScreen() {
         Stage stage = new Stage();

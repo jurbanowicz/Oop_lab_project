@@ -8,26 +8,9 @@ import java.io.IOException;
 
 public class ParametersWriter {
 
-    public void writeParameters(SimulationParameters parameters, String settingsName) {
-
-        String text = parameters.toString();
-
-        try {
-
-            FileWriter fWriter = new FileWriter(
-                    "/Users/jacekurbanowicz/Desktop/WIET/Obiektowe/oop_project_1/src/main/resources/SimSpecs/" + settingsName + ".txt");
-
-            fWriter.write(text);
-            System.out.println(text);
-            fWriter.close();
-        }
-        catch (IOException e) {
-            System.out.print(e.getMessage());
-        }
-    }
     public void write(SimulationParameters parameters, String settingsName) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("/Users/jacekurbanowicz/Desktop/WIET/Obiektowe/oop_project_1/src/main/resources/SimSpecs/" + settingsName + ".txt"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("./src/main/resources/Presets/" + settingsName + ".txt"));
             writer.write(parameters.noAnimals + "\n");
             writer.write(parameters.startingEnergy + "\n");
             writer.write(parameters.dailyEnergyCost + "\n");
@@ -42,12 +25,12 @@ public class ParametersWriter {
             writer.write(parameters.mapWidth + "\n");
             writer.write(parameters.sleepTime + "\n");
             writer.write(parameters.mapVariant + "\n");
+            writer.write(parameters.grassVariant + "\n");
             writer.write(parameters.mutationVariant + "\n");
             writer.write(parameters.moveVariant + "\n");
             writer.close();
         } catch (IOException e) {
             System.out.print(e.getMessage());
         }
-
     }
 }

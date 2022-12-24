@@ -37,6 +37,7 @@ public class Visualizer implements IMapObserver {
     private Button pauseButton;
     private Button eraJumpButton;
     private TextField eraJumpField;
+    private Button trackAnimalButton;
     private int squareSize;
     private GraphicsContext WorldMap;
     private Canvas mapCanvas;
@@ -90,9 +91,10 @@ public class Visualizer implements IMapObserver {
         statistics.setAlignment(Pos.CENTER);
 
         createPauseButton();
+        createTrackAnimalButton();
 //        createEraJumpButton();
 
-        VBox LeftBox = new VBox(statistics, pauseButton);
+        VBox LeftBox = new VBox(statistics, pauseButton, trackAnimalButton);
         LeftBox.setAlignment(Pos.CENTER);
         LeftBox.setLayoutX(100);
         Group root = new Group(LeftBox, mapBox);
@@ -127,7 +129,11 @@ public class Visualizer implements IMapObserver {
                 int agesToJump = Integer.parseInt(eraJumpField.getText());
                 engine.skipAges(agesToJump);
             }
+
         });
+    }
+    private void createTrackAnimalButton() {
+        trackAnimalButton = new Button("Track single animal");
     }
     private LineChart<Number, Number> createLineChart(){
 
