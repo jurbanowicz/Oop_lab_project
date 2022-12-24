@@ -11,6 +11,9 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
@@ -19,6 +22,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+
+import java.awt.event.MouseEvent;
 
 public class Visualizer implements IMapObserver {
     private IWorldMap map;
@@ -34,13 +40,23 @@ public class Visualizer implements IMapObserver {
     private int squareSize;
     private GraphicsContext WorldMap;
     private Canvas mapCanvas;
-    public void start(Stage primaryStage){
-        initialize();
+    private String mapColor;
+    private NumberAxis xAxis;
+    private NumberAxis yAxis;
+    private XYChart.Series<Number, Number> animalSeries;
+    private XYChart.Series<Number, Number> grassSeries;
+    public void start(Stage primaryStage, SimulationParameters params){
+        initialize(params);
         run(primaryStage);
     }
-    private void initialize(){
-        SimulationParameters params = new SimulationParameters(50, 100,1, 10, 10, 5, 20, 1, 1, 0, 0);
-        map = new EarthMap(100, 100);
+    private void initialize(SimulationParameters params){
+        if (params.mapVariant == 0) {
+            map = new EarthMap(params.mapHeight, params.mapWidth);
+            mapColor = "#A4EBA2";
+        } else {
+            map = new PortalMap(params.mapHeight, params.mapWidth);
+            mapColor = "#2B3768";
+        }
         map.addMapObserver(this);
         engine = new SimulationEngine(map, params);
         engineThread = new Thread(engine);
@@ -70,20 +86,23 @@ public class Visualizer implements IMapObserver {
         statistics.getChildren().addAll(statsHeading,
                 SimAgeHeading, SimAgeValue,
                 NumberOfAnimalsHeading, NumberOfAnimalsValue,
-                NumberOfGrassHeading, NumberOfGrassValue);
+                NumberOfGrassHeading, NumberOfGrassValue, createLineChart());
         statistics.setAlignment(Pos.CENTER);
 
         createPauseButton();
-        createEraJumpButton();
+//        createEraJumpButton();
 
-        VBox LeftBox = new VBox(statistics, pauseButton, eraJumpButton, eraJumpField);
+        VBox LeftBox = new VBox(statistics, pauseButton);
         LeftBox.setAlignment(Pos.CENTER);
-        LeftBox.setLayoutX(200);
+        LeftBox.setLayoutX(100);
         Group root = new Group(LeftBox, mapBox);
         Scene scene = new Scene(root, 1400, 750);
         engineThread.start();
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(event -> {
+            engine.endSimulation();
+        });
     }
     private void createPauseButton() {
         pauseButton = new Button("Pause Simulation");
@@ -110,17 +129,56 @@ public class Visualizer implements IMapObserver {
             }
         });
     }
+    private LineChart<Number, Number> createLineChart(){
+
+        xAxis = new NumberAxis();
+        yAxis = new NumberAxis();
+
+        xAxis.setForceZeroInRange(false);
+        xAxis.setLabel("Age");
+        xAxis.setAnimated(false);
+        xAxis.setAutoRanging(false);
+        xAxis.setTickUnit(50);
+
+        yAxis.setLabel("Count");
+        yAxis.setAnimated(false);
+
+        LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
+
+        animalSeries = new XYChart.Series<>();
+        grassSeries = new XYChart.Series<>();
+
+        animalSeries.setName("Animals");
+        grassSeries.setName("Grass");
+
+        lineChart.getData().add(animalSeries);
+        lineChart.getData().add(grassSeries);
+
+        lineChart.setCreateSymbols(false);
+
+        return lineChart;
+    }
     private void drawStats() {
         SimAgeValue.setText(String.valueOf(engine.getSimAge()));
         NumberOfAnimalsValue.setText(String.valueOf(engine.getAnimalsOnMap()));
         NumberOfGrassValue.setText(String.valueOf(engine.getGrassOnMap()));
+
+        if(engine.getSimAge() % 1000 == 0){
+            xAxis.setLowerBound(engine.getSimAge());
+            animalSeries.getData().clear();
+            grassSeries.getData().clear();
+        }
+
+        xAxis.setUpperBound(engine.getSimAge());
+        animalSeries.getData().add(new XYChart.Data<>(engine.getSimAge(), engine.getAnimalsOnMap()));
+        grassSeries.getData().add(new XYChart.Data<>(engine.getSimAge(), engine.getGrassOnMap()));
     }
     private void drawMapCanvas() {
-        WorldMap.setFill(Color.valueOf("#A4EBA2"));
+        WorldMap.setFill(Color.valueOf(mapColor));
         WorldMap.fillRect(0, 0, map.getSize().x * squareSize, map.getSize().y * squareSize);
 
         for (Grass grass: engine.getGrass()) {
-            WorldMap.setFill(Color.valueOf("#0c4a20"));
+            WorldMap.setFill(Color.valueOf("#33F03E"));
             Vector2d position = grass.getPosition();
             WorldMap.fillOval(position.x * squareSize, position.y * squareSize, squareSize, squareSize);
         }

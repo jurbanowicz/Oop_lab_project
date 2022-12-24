@@ -20,6 +20,8 @@ public class SimulationEngine implements Runnable {
     private AnimalBreeder animalBreeder;
     private boolean isPaused;
     private int dailyEnergyCost;
+    private int sleepTime;
+    private boolean endSim;
 
 
     /**
@@ -39,8 +41,11 @@ public class SimulationEngine implements Runnable {
         this.map.setAnimalBreeder(this.animalBreeder);
         this.isPaused = false;
         this.grassOnMap = new ArrayList<>();
+        this.sleepTime = parameters.sleepTime;
+        this.endSim = false;
 
         for (Animal animal: animals) {
+            animal.setMoveVariant(parameters.moveVariant);
             map.place(animal);
         }
         growGrass(parameters.startGrassAmount);
@@ -69,6 +74,9 @@ public class SimulationEngine implements Runnable {
     public boolean isSimPaused() {
         return isPaused;
     }
+    public void endSimulation() {
+        this.endSim = true;
+    }
 
     public void run() {
 //        System.out.println(map);
@@ -77,19 +85,21 @@ public class SimulationEngine implements Runnable {
 
         while (true) {
 //            System.out.println("Check");
+            if (endSim) {
+                break;
+            }
+
             if (!(isSimPaused())) {
                 if (animals.size() == 0) {
                     break;
                 }
-//            System.out.println(map);
 
-//                printCurrentAnimals();
                 runSimulationDay();
                 map.notifyObserver();
             }
 
             try {
-                Thread.sleep(20);
+                Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
