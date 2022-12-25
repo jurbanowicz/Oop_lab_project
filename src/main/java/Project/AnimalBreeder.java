@@ -22,6 +22,8 @@ public class AnimalBreeder {
         baby.setGenotype(genotypeGenerator.GenerateBaby(a1, a2));
         a1.subtractEnergy(breedingCost);
         a2.subtractEnergy(breedingCost);
+        a1.addChildren();
+        a2.addChildren();
         baby.setMoveVariant(a1.getMoveVariant());
         return baby;
     }

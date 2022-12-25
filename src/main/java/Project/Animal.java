@@ -18,6 +18,7 @@ public class Animal implements IMapElement{
     private ArrayList<IPositionChangeObserver> observers;
     private int moveVariant;
     private int grassConsumed;
+    private int children;
 
     /** Create a new animal
      *
@@ -39,6 +40,7 @@ public class Animal implements IMapElement{
         addObserver((IPositionChangeObserver) map);
         this.grassConsumed = 0;
         this.deathDate = -1;
+        this.children = 0;
     }
 
     @Override
@@ -98,12 +100,21 @@ public class Animal implements IMapElement{
             if (a1.getEnergy() > a2.getEnergy()) {
                 return 1;
             } else if (a1.getEnergy() == a2.getEnergy()) {
-                return 0;
+                return a1.compareByEnergy(a1, a2);
             } else {
-                return 0;
+                return -1;
             }
         }
     };
+    public int compareByEnergy(Animal a1, Animal a2) {
+        if (a1.getAge() > a2.getAge()) {
+            return 1;
+        } else if (a1.getAge() == a2.getAge()) {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
     public void positionChanged(Vector2d oldPos, Vector2d newPos) {
         for (IPositionChangeObserver observer: observers) {
             observer.positionChanged(this, oldPos, position);
@@ -148,5 +159,11 @@ public class Animal implements IMapElement{
     }
     public int getDeathDate() {
         return deathDate;
+    }
+    public int getChildren() {
+        return this.children;
+    }
+    public void addChildren() {
+        this.children++;
     }
 }

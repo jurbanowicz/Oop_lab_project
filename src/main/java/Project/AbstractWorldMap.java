@@ -61,8 +61,8 @@ public abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObse
             Animal animal = current.peek();
             if (grassList.containsKey(animal.getPosition())) {
                 animal.consume(grassList.get(animal.getPosition()));
-                grassList.remove(animal.getPosition());
                 grassConsumed.add(grassList.get(animal.getPosition()));
+                grassList.remove(animal.getPosition());
             }
         }
         return grassConsumed;

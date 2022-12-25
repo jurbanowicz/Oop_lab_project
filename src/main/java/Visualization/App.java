@@ -6,8 +6,11 @@ import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -40,6 +43,7 @@ public class App extends Application {
     private ComboBox<String> mutationsVariant;
     private ComboBox<String> behaviourVariant;
     private ComboBox<String> simulationPresets;
+    private CheckBox writeToCSVBox;
 
 
     @Override
@@ -180,9 +184,9 @@ public class App extends Application {
         );
         leftBox.setAlignment(Pos.CENTER);
 
-
+        writeToCSVBox = new CheckBox("Save data to csv file");
         VBox rightBox = new VBox(
-                gameVariantText, mapVarBox, grassVarBox, mutationsVarBox, behaviourVarBox, fileSection
+                gameVariantText, mapVarBox, grassVarBox, mutationsVarBox, behaviourVarBox, fileSection, writeToCSVBox
         );
         rightBox.setAlignment(Pos.CENTER);
         rightBox.setSpacing(20);
@@ -223,64 +227,19 @@ public class App extends Application {
         if (breedingEnergyCost > breedingRequiredEnergy) {
             throw new NumberFormatException("Breeding energy cost is higher than energy required to breed");
         }
-
-
-
         int mapHeight = Integer.parseInt(mapHeightValue.getText());
         int mapWidth = Integer.parseInt(mapWidthValue.getText());
-
         int sleepTime = Integer.parseInt(simSleepTime.getText());
-
-//        String mapVar = mapVariant.getValue();
-//        if (mapVar == null) {
-//            throw new NumberFormatException();
-//        }
-//        int mapVal;
-//        if (Objects.equals(mapVar, "Earth Map")) {
-//            mapVal = 0;
-//        } else {
-//            mapVal = 1;
-//        }
-//        String grassVar = grassVariant.getValue();
-//        int grassVal;
-//        if (grassVar == null) {
-//            throw new NumberFormatException();
-//        }
-//        if (Objects.equals(grassVar, "Arboreous Equator")) {
-//            grassVal = 0;
-//        } else {
-//            grassVal = 1;
-//        }
-//
-//        String mutationsVar = mutationsVariant.getValue();
-//        int mutationVal;
-//        if (mutationsVar == null) {
-//            throw new NumberFormatException();
-//        }
-//        if (Objects.equals(mutationsVar, "Fully Randomized")) {
-//            mutationVal = 0;
-//        } else {
-//            mutationVal = 1;
-//        }
-//
-//        String moveVar = behaviourVariant.getValue();
-//        if (moveVar == null) {
-//            throw new NumberFormatException();
-//        }
-//        int moveVal;
-//        if (Objects.equals(moveVar, "Full predestination")) {
-//            moveVal = 0;
-//        } else {
-//            moveVal = 1;
-//        }
         int mapVal = saveComboBoxParameter(mapVariant);
         int grassVal = saveComboBoxParameter(grassVariant);
         int mutationVal = saveComboBoxParameter(mutationsVariant);
         int moveVal = saveComboBoxParameter(behaviourVariant);
 
+        boolean writeToCSV = writeToCSVBox.isSelected();
+
         return new SimulationParameters(animalsNo, animalsEnergy, dailyEnergy,
                 genotypeLen, startingGrass, growingGrass, grassE, breedingEnergyCost, breedingRequiredEnergy,
-                mutationsOccurring, mutationVal, mapHeight, mapWidth, mapVal, moveVal, sleepTime, grassVal
+                mutationsOccurring, mutationVal, mapHeight, mapWidth, mapVal, moveVal, sleepTime, grassVal, writeToCSV
                 );
     }
     private void loadParametersFromFile(String fileName) {
@@ -351,6 +310,7 @@ public class App extends Application {
         });
         saveButton.setOnAction(event -> {
             ParametersWriter writer = new ParametersWriter();
+
             writer.write(readParameters(), filePath.getText());
             updatePresetBox();
         });

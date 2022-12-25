@@ -1,5 +1,6 @@
 package Simulation;
 
+import IO.CSVFileWriter;
 import Project.*;
 import javafx.application.Platform;
 
@@ -22,6 +23,7 @@ public class SimulationEngine implements Runnable {
     private int dailyEnergyCost;
     private int sleepTime;
     private boolean endSim;
+    private CSVFileWriter csvFileWriter;
 
 
     /**
@@ -43,6 +45,12 @@ public class SimulationEngine implements Runnable {
         this.grassOnMap = new ArrayList<>();
         this.sleepTime = parameters.sleepTime;
         this.endSim = false;
+
+        if (parameters.writeToCSV) {
+            csvFileWriter = new CSVFileWriter();
+        } else {
+            csvFileWriter = null;
+        }
 
         for (Animal animal: animals) {
             animal.setMoveVariant(parameters.moveVariant);
@@ -96,6 +104,10 @@ public class SimulationEngine implements Runnable {
 
                 runSimulationDay();
                 map.notifyObserver();
+
+                if (csvFileWriter != null) {
+                    csvFileWriter.writeLine(getSimData());
+                }
             }
 
             try {
@@ -103,6 +115,9 @@ public class SimulationEngine implements Runnable {
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
+        }
+        if (csvFileWriter != null) {
+            csvFileWriter.saveFile();
         }
     }
     private void runSimulationDay() {
@@ -115,6 +130,11 @@ public class SimulationEngine implements Runnable {
         growGrass(grassGrowingEachDay);
     }
     public void removeDeadAnimals() {
+        for (Animal animal: animals) {
+            if (animal.isAnimalDead()) {
+                animal.setDeathDate(simAge);
+            }
+        }
         animals.removeIf(Animal::isAnimalDead);
 //        for (Animal animal: animals) {
 //            if (animal.isAnimalDead()) {
@@ -180,5 +200,16 @@ public class SimulationEngine implements Runnable {
     }
     public ArrayList<Grass> getGrass() {
         return this.grassOnMap;
+    }
+    private String getSimData() {
+        String data = simAge + "," + getAnimalsOnMap() + "," + getGrassOnMap() + "\n";
+        return data;
+    }
+    public float getAverageEnergy() {
+        float total = 0;
+        for (Animal animal: animals) {
+            total += animal.getEnergy();
+        }
+        return total/animals.size();
     }
 }
