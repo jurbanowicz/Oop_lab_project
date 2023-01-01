@@ -1,7 +1,11 @@
 package Project;
 
+import com.sun.source.tree.Tree;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.TreeSet;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class PortalMap extends AbstractWorldMap {
@@ -10,6 +14,8 @@ public class PortalMap extends AbstractWorldMap {
         super.width = width;
         super.animalList = new HashMap<>();
         super.grassList = new HashMap<>();
+        super.deathPlaces = new ArrayList<>();
+        initDeathPlaces();
     }
 
     @Override

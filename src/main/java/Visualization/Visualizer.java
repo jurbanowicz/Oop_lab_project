@@ -3,6 +3,7 @@ package Visualization;
 import Project.*;
 import Simulation.SimulationEngine;
 import Simulation.SimulationParameters;
+import com.sun.source.doctree.TextTree;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -27,6 +28,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -39,11 +41,13 @@ public class Visualizer implements IMapObserver {
     private Text NumberOfAnimalsValue;
     private Text NumberOfGrassValue;
     private Text averageEnergy;
+    private Text availableSpaces;
+    private Text mostPopularGenom;
+    private Text averageDeathAge;
     private Text SimAgeValue;
     private Button pauseButton;
-    private Button eraJumpButton;
-    private TextField eraJumpField;
-    private Button trackAnimalButton;
+    private Button stopTrackingButton;
+    private Button showMostPopularGenomButton;
     private int squareSize;
     private GraphicsContext WorldMap;
     private Canvas mapCanvas;
@@ -89,6 +93,9 @@ public class Visualizer implements IMapObserver {
         NumberOfAnimalsValue = new Text("-");
         NumberOfGrassValue = new Text("-");
         averageEnergy = new Text("-");
+        averageDeathAge = new Text("-");
+        mostPopularGenom = new Text("-");
+        availableSpaces = new Text("-");
         trackedAnimal = null;
     }
     private void run(Stage primaryStage) {
@@ -104,30 +111,23 @@ public class Visualizer implements IMapObserver {
             if (object instanceof Animal) {
                 trackedAnimal = (Animal) object;
                 updateTrackedAnimal();
+                drawMapCanvas();
             }
         };
         mapCanvas.addEventFilter(MouseEvent.MOUSE_CLICKED, animalSelectEvent);
 
-        statistics = new VBox();
-        Text statsHeading = new Text("Simulation Statistics: ");
-        statsHeading.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 25));
-        Text NumberOfAnimalsHeading = new Text("Number of animals on map: ");
-        Text NumberOfGrassHeading = new Text("Number of grass on map: ");
-        Text averageEnergyHeading = new Text("Average animal energy: ");
-        Text SimAgeHeading = new Text("Simulation age: ");
-        statistics.getChildren().addAll(statsHeading,
-                SimAgeHeading, SimAgeValue,
-                NumberOfAnimalsHeading, NumberOfAnimalsValue,
-                averageEnergyHeading, averageEnergy,
-                NumberOfGrassHeading, NumberOfGrassValue, createLineChart());
-        statistics.setAlignment(Pos.CENTER);
+        createStatisticsBox();
 
         createPauseButton();
-        VBox trackedAnimalBox = createTrackedAnimalBox();
-//        createTrackAnimalButton();
-//        createEraJumpButton();
+        createStopTrackingButton();
+        VBox trackedAnimalstats = createTrackedAnimalBox();
+        HBox trackedAnimalBox = new HBox(trackedAnimalstats, stopTrackingButton);
+        trackedAnimalBox.setAlignment(Pos.CENTER);
 
-        VBox LeftBox = new VBox(statistics, pauseButton, trackedAnimalBox);
+        createAnimalsGenotypeButton();
+
+
+        VBox LeftBox = new VBox(statistics, pauseButton, trackedAnimalBox, showMostPopularGenomButton);
         LeftBox.setAlignment(Pos.CENTER);
         LeftBox.setLayoutX(0);
         Group root = new Group(LeftBox, mapBox);
@@ -139,6 +139,27 @@ public class Visualizer implements IMapObserver {
         primaryStage.setOnCloseRequest(event -> {
             engine.endSimulation();
         });
+    }
+    private void createStatisticsBox() {
+        statistics = new VBox();
+        Text statsHeading = new Text("Simulation Statistics: ");
+        statsHeading.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 25));
+        Text NumberOfAnimalsHeading = new Text("Number of animals on map: ");
+        Text NumberOfGrassHeading = new Text("Number of grass on map: ");
+        Text averageEnergyHeading = new Text("Average animal energy: ");
+        Text availableSpacesHeading = new Text("Spaces available: ");
+        Text mostPopularGenomHeading = new Text("Most popular Genotype: ");
+        Text averageDeathAgeHeading = new Text("Average age of death: ");
+        Text SimAgeHeading = new Text("Simulation age: ");
+        statistics.getChildren().addAll(statsHeading,
+                SimAgeHeading, SimAgeValue,
+                NumberOfAnimalsHeading, NumberOfAnimalsValue,
+                availableSpacesHeading, availableSpaces,
+                mostPopularGenomHeading, mostPopularGenom,
+                averageEnergyHeading, averageEnergy,
+                averageDeathAgeHeading, averageDeathAge,
+                NumberOfGrassHeading, NumberOfGrassValue, createLineChart());
+        statistics.setAlignment(Pos.CENTER);
     }
     private void createPauseButton() {
         pauseButton = new Button("Pause Simulation");
@@ -153,22 +174,26 @@ public class Visualizer implements IMapObserver {
             }
         });
     }
-    private void createEraJumpButton() {
-        eraJumpButton = new Button("Jump simulation eras");
-        eraJumpField = new TextField("Input number of ages to skip");
-        eraJumpButton.setMinWidth(200);
-
-        eraJumpButton.setOnAction(event -> {
-            if (engine.isSimPaused()) {
-                int agesToJump = Integer.parseInt(eraJumpField.getText());
-                engine.skipAges(agesToJump);
-            }
-
+    private void createStopTrackingButton() {
+        stopTrackingButton = new Button("Stop Tracking Animal");
+        stopTrackingButton.setOnAction(event -> {
+                trackedAnimal = null;
+                updateTrackedAnimal();
         });
     }
-//    private void createTrackAnimalButton() {
-//        trackAnimalButton = new Button("Track single animal");
-//    }
+    private void createAnimalsGenotypeButton() {
+        showMostPopularGenomButton = new Button("Highlight animals with most popular genotype");
+        showMostPopularGenomButton.setOnAction(event -> {
+            if (engine.isSimPaused()) {
+                ArrayList<Animal> highlight = engine.getAnimalsWithMostPopularGenom();
+                for (Animal animal: highlight) {
+                    WorldMap.setFill(Color.valueOf("#FFFB00"));
+                    Vector2d position = animal.getPosition();
+                    WorldMap.fillOval(position.x * squareSize, position.y * squareSize, squareSize, squareSize);
+                }
+            }
+        });
+    }
     private VBox createTrackedAnimalBox() {
 
         trackedHeading = new Text("Select Animal to track: ");
@@ -198,19 +223,30 @@ public class Visualizer implements IMapObserver {
         return trackedAnimalBox;
     }
     private void updateTrackedAnimal() {
+        if (trackedAnimal == null) {
+            trackedHeading.setText("Select animal to track");
+            trackedGenotype.setText("-");
+            trackedAge.setText("-");
+            trackedEnergy.setText("-");
+            trackedGrass.setText("-");
+            trackedOffsprings.setText("-");
+            trackedActiveGenom.setText("-");
+        }
         int[] genotype = trackedAnimal.getGenotype();
         float energy = trackedAnimal.getEnergy();
         int age = trackedAnimal.getAge();
         int grassConsumed = trackedAnimal.getGrassConsumed();
         int offsprings = trackedAnimal.getChildren();
         int deathAge = trackedAnimal.getDeathDate();
+        int genidx = trackedAnimal.getGenIdx();
+        int activeGen = genotype[genidx];
         trackedHeading.setText("Tracked animal Stats: ");
         trackedGenotype.setText(Arrays.toString(genotype));
         trackedAge.setText(String.valueOf(age));
         trackedEnergy.setText(String.valueOf(energy));
         trackedGrass.setText(String.valueOf(grassConsumed));
         trackedOffsprings.setText(String.valueOf(offsprings));
-        trackedActiveGenom.setText("Add that later");
+        trackedActiveGenom.setText(String.valueOf(activeGen));
         if (deathAge > -1) {
             trackedAgeOfDeath.setText(String.valueOf(deathAge));
         } else {
@@ -244,16 +280,19 @@ public class Visualizer implements IMapObserver {
 
         lineChart.setCreateSymbols(false);
 
-        lineChart.setMaxHeight(500);
+        lineChart.setMaxHeight(300);
         lineChart.setMaxWidth(500);
 
         return lineChart;
     }
     private void drawStats() {
+        DecimalFormat df = new DecimalFormat("#.##");
         SimAgeValue.setText(String.valueOf(engine.getSimAge()));
         NumberOfAnimalsValue.setText(String.valueOf(engine.getAnimalsOnMap()));
         NumberOfGrassValue.setText(String.valueOf(engine.getGrassOnMap()));
-        DecimalFormat df = new DecimalFormat("#.##");
+        availableSpaces.setText(String.valueOf(engine.getAvailableSpaces()));
+        mostPopularGenom.setText(Arrays.toString(engine.getMostPopularGenom()));
+        averageDeathAge.setText(String.valueOf(df.format(engine.getAverageDeathAge())));
         averageEnergy.setText(String.valueOf(df.format(engine.getAverageEnergy())));
 
         if(engine.getSimAge() % 1000 == 0){
@@ -282,6 +321,13 @@ public class Visualizer implements IMapObserver {
             WorldMap.setFill(Color.valueOf(energyToColor(animal)));
             Vector2d position = animal.getPosition();
             WorldMap.fillOval(position.x * squareSize, position.y * squareSize, squareSize, squareSize);
+        }
+        if (trackedAnimal != null) {
+            if (!(trackedAnimal.isAnimalDead())) {
+                WorldMap.setFill(Color.valueOf("#FB00FF"));
+                Vector2d position = trackedAnimal.getPosition();
+                WorldMap.fillOval(position.x * squareSize, position.y * squareSize, squareSize, squareSize);
+            }
         }
     }
     private String energyToColor(Animal animal) {

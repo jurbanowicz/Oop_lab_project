@@ -12,7 +12,7 @@ public class CSVFileWriter {
 
     public CSVFileWriter() {
         this.data = new ArrayList<>();
-        data.add("Age, Animals, Grass\n");
+        data.add("Age, Animals, Grass, Available Spaces, Average Energy, Average Death Age, Most Popular Genotype\n");
     }
 
     public void writeLine(String dataLine) {

@@ -1,12 +1,15 @@
 package Project;
 
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class GrassSpawner {
     private float grassEnergy;
+    private int growingVariant;
 
-    public GrassSpawner(float grassEnergy) {
+    public GrassSpawner(float grassEnergy, int growingVariant) {
         this.grassEnergy = grassEnergy;
+        this.growingVariant = growingVariant;
     }
 
     public Grass growGrass(IWorldMap map) {
@@ -23,7 +26,12 @@ public class GrassSpawner {
 //            int x = ThreadLocalRandom.current().nextInt(0, mapSize.x);
 //            int y = ThreadLocalRandom.current().nextInt(0, mapSize.y);
 //            Vector2d current = new Vector2d(x, y);
-            Vector2d current = findNearEquator(map);
+            Vector2d current;
+            if (growingVariant == 0) {
+                current = findNearEquator(map);
+            } else {
+                current = findNotCorpses(map);
+            }
             if (!(map.objectAt(current) instanceof Grass)) {
                 return current;
             }
@@ -61,5 +69,19 @@ public class GrassSpawner {
                 return new Vector2d(x, y);
             }
         }
+    }
+    private Vector2d findNotCorpses(IWorldMap map) {
+        ArrayList<Vector2dWithProbability> positions = map.getDeathPlaceList();
+        int size = positions.size();
+        int preferred = ThreadLocalRandom.current().nextInt(0, 10);
+        Vector2dWithProbability result;
+        if (preferred < 8) {
+            int bound = ThreadLocalRandom.current().nextInt(0, size/5);
+            result = positions.get(bound);
+        } else {
+            int bound = ThreadLocalRandom.current().nextInt(size/5, size);
+            result = positions.get(bound);
+        }
+        return result.toVector2d();
     }
 }

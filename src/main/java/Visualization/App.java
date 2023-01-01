@@ -5,10 +5,7 @@ import Simulation.SimulationParameters;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
@@ -152,7 +149,7 @@ public class App extends Application {
                 Visualizer visualizer = new Visualizer();
                 visualizer.start(new Stage(), params);
             } catch (NumberFormatException e) {
-                ErrorScreen();
+                ErrorScreen(e);
                 System.out.print(e.getMessage());
             }
         });
@@ -221,11 +218,15 @@ public class App extends Application {
         int breedingRequiredEnergy = Integer.parseInt(breedingEnergy.getText());
         int mutationsOccurring = Integer.parseInt(mutationsNumber.getText());
 
+        if (animalsNo <= 0 || animalsEnergy <= 0 || dailyEnergy <= 0 || genotypeLen <= 0 || grassE <= 0 || breedingEnergyCost <= 0 || breedingRequiredEnergy <= 0) {
+            throw new NumberFormatException("Inputs must be positive numbers!");
+        }
+
         if (mutationsOccurring > genotypeLen) {
-            throw new NumberFormatException("Number of mutations occurring is larger than animal's genotype");
+            throw new NumberFormatException("Number of mutations occurring is larger than animal's genotype length!");
         }
         if (breedingEnergyCost > breedingRequiredEnergy) {
-            throw new NumberFormatException("Breeding energy cost is higher than energy required to breed");
+            throw new NumberFormatException("Breeding energy cost is higher than energy required to breed!");
         }
         int mapHeight = Integer.parseInt(mapHeightValue.getText());
         int mapWidth = Integer.parseInt(mapWidthValue.getText());
@@ -234,6 +235,16 @@ public class App extends Application {
         int grassVal = saveComboBoxParameter(grassVariant);
         int mutationVal = saveComboBoxParameter(mutationsVariant);
         int moveVal = saveComboBoxParameter(behaviourVariant);
+
+        if (mapHeight > 250 || mapWidth > 300) {
+            throw new NumberFormatException("Maximal allowed map size is 250x300!");
+        }
+        if (mapHeight < 1 || mapWidth < 1) {
+            throw new NumberFormatException("Map size must be at least 1x1!");
+        }
+        if (sleepTime < 10) {
+            throw new NumberFormatException("Smallest sleep time allowed is 10ms!");
+        }
 
         boolean writeToCSV = writeToCSVBox.isSelected();
 
@@ -341,18 +352,23 @@ public class App extends Application {
                 .map(File::getName)
                 .collect(Collectors.toSet());
     }
-    private void ErrorScreen() {
+    private void ErrorScreen(NumberFormatException e) {
         Stage stage = new Stage();
         Text error = new Text("Input correct values");
-        VBox root = new VBox(error);
+        Text errorText = new Text(e.getMessage());
+        VBox root = new VBox(error, errorText);
         root.setAlignment(Pos.CENTER);
-        stage.setScene(new Scene(root, 200, 100));
+        stage.setScene(new Scene(root, 400, 100));
         stage.setTitle("INPUT ERROR");
         stage.show();
     }
     private void getInfoScreen() {
         Stage stage = new Stage();
-        VBox root = new VBox();
+
+
+        Text linkText = new Text("For more detailed information please visit: ");
+        Hyperlink link = new Hyperlink("https://github.com/apohllo/obiektowe-lab/tree/master/proj1");
+        VBox root = new VBox(linkText, link);
         root.setAlignment(Pos.CENTER);
         stage.setScene(new Scene(root, 500,500));
         stage.setTitle("Game Information");

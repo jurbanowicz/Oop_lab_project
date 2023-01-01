@@ -2,10 +2,7 @@ package Project;
 
 import Visualization.MapVisualizer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObserver{
     protected int height;
@@ -15,6 +12,7 @@ public abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObse
     protected HashMap<Vector2d, Grass> grassList;
     protected AnimalBreeder animalBreeder;
     protected IMapObserver observer;
+    protected ArrayList<Vector2dWithProbability> deathPlaces;
 
     @Override
     public Vector2d getSize() {
@@ -142,5 +140,29 @@ public abstract class AbstractWorldMap implements IWorldMap, IPositionChangeObse
     public int countGrass() {
         return this.grassList.size();
     }
+
+    @Override
+    public void addDeathPlace(Vector2d position) {
+        for (Vector2dWithProbability vector: deathPlaces) {
+            if (vector.toVector2d().x == position.x && vector.toVector2d().y == position.y) {
+                vector.increaseProbability();
+                break;
+            }
+        }
+    }
+    protected void initDeathPlaces() {
+        for (int i=0; i < height; i++) {
+            for (int j=0; j < width; j++) {
+                deathPlaces.add(new Vector2dWithProbability(j, i, 0));
+            }
+        }
+        Collections.shuffle(deathPlaces);
+    }
+    @Override
+    public ArrayList<Vector2dWithProbability> getDeathPlaceList() {
+        Collections.sort(deathPlaces, Comparator.comparingInt(Vector2dWithProbability::getProb));
+        return deathPlaces;
+    }
+
 }
 

@@ -2,9 +2,7 @@ package Project;
 
 import Visualization.MapVisualizer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.*;
 
 import static java.lang.Math.abs;
 
@@ -23,6 +21,8 @@ public class EarthMap extends AbstractWorldMap{
         super.width = width;
         super.animalList = new HashMap<>();
         super.grassList = new HashMap<>();
+        super.deathPlaces = new ArrayList<>();
+        initDeathPlaces();
     }
 
     @Override
@@ -36,11 +36,12 @@ public class EarthMap extends AbstractWorldMap{
             newX = 0;
         }
         if (newPos.y < 0) {
-            newY = height - 1;
-        }
-        if (newPos.y >= height) {
             newY = 0;
         }
+        if (newPos.y >= height) {
+            newY = height - 1;
+        }
+
 
         return new Vector2d(newX, newY);
     }

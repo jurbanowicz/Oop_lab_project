@@ -82,6 +82,10 @@ public class Animal implements IMapElement{
         Vector2d oldPos = this.position;
         MapDirection newDirection = direction.rotate(currMove);
         Vector2d newPos = oldPos.add(newDirection.toUnitVector());
+        direction = newDirection;
+        if (newPos.equals(oldPos)) {
+            this.direction = direction.rotate(4);
+        }
         position = map.MoveTo(newPos);
         positionChanged(oldPos, newPos);
 
@@ -100,20 +104,23 @@ public class Animal implements IMapElement{
             if (a1.getEnergy() > a2.getEnergy()) {
                 return 1;
             } else if (a1.getEnergy() == a2.getEnergy()) {
-                return a1.compareByEnergy(a1, a2);
+                return a1.compareByAge(a1, a2);
             } else {
                 return -1;
             }
         }
     };
-    public int compareByEnergy(Animal a1, Animal a2) {
+    public int compareByAge(Animal a1, Animal a2) {
         if (a1.getAge() > a2.getAge()) {
             return 1;
         } else if (a1.getAge() == a2.getAge()) {
-            return 0;
+            return compareByOffsprings(a1, a2);
         } else {
             return -1;
         }
+    }
+    public int compareByOffsprings(Animal a1, Animal a2) {
+        return Integer.compare(a1.getChildren(), a2.getChildren());
     }
     public void positionChanged(Vector2d oldPos, Vector2d newPos) {
         for (IPositionChangeObserver observer: observers) {
@@ -165,5 +172,8 @@ public class Animal implements IMapElement{
     }
     public void addChildren() {
         this.children++;
+    }
+    public int getGenIdx() {
+        return genIdx;
     }
 }
