@@ -8,6 +8,10 @@ java {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
+
+application {
+    mainClass = "Simulation.AppLauncher"
+}
 group 'org.example'
 version '1.0-SNAPSHOT'
 
